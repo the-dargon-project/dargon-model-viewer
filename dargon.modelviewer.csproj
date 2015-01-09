@@ -63,6 +63,8 @@
   <ItemGroup>
     <Compile Include="ModelViewerWindow.cs" />
     <Compile Include="Model.cs" />
+    <Compile Include="ModelViewerWindow.Init.cs" />
+    <Compile Include="ModelViewerWindow.Run.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -74,8 +76,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="ModelViewer.Init.cs" />
-    <Compile Include="ModelViewer.Run.cs" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
