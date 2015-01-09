@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -10,7 +11,7 @@ using Device = SharpDX.Direct3D11.Device;
 using Resource = SharpDX.Direct3D11.Resource;
 
 namespace Dargon.ModelViewer {
-   public partial class ModelViewer {
+   public partial class ModelViewerWindow {
       public void Initialize() {
          form = new RenderForm("The Dargon Project Model Viewer");
 
@@ -37,7 +38,7 @@ namespace Dargon.ModelViewer {
          factory.Dispose();
 
          // Create a RenderTargetView from the backbuffer
-         var backBuffer = Texture2D.FromSwapChain<Texture2D>(swapChain, 0);
+         var backBuffer = Resource.FromSwapChain<Texture2D>(swapChain, 0);
          backbufferRTV = new RenderTargetView(device, backBuffer);
          backBuffer.Dispose();
 
@@ -50,8 +51,9 @@ namespace Dargon.ModelViewer {
 
          // Create the input layout for the COMPLEX vertex
          inputLayout = new InputLayout(device, ShaderSignature.GetInputSignature(vertexShaderByteCode), new[] {
-         new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-         new InputElement("TEXCOORD", 0, Format.R32G32_Float, 16, 0)
+            new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
+            new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, 16, 0),
+            new InputElement("TEXCOORD", 0, Format.R32G32_Float, 32, 0)
          });
 
          // Release the bytecode
@@ -100,72 +102,24 @@ namespace Dargon.ModelViewer {
          immediateContext.Rasterizer.SetViewport(new Viewport(0, 0, form.ClientSize.Width, form.ClientSize.Height, 0.0f, 1.0f));
          immediateContext.OutputMerger.SetTargets(depthStencilView, backbufferRTV);
 
-         var view = Matrix.LookAtLH(new Vector3(8, 8, 8), new Vector3(0, 0, 0), Vector3.UnitY);
-         var proj = Matrix.PerspectiveFovLH((float)Math.PI / 4.0f, form.ClientSize.Width / (float)form.ClientSize.Height, 0.1f, 100.0f);
+         var view = Matrix.LookAtLH(new Vector3(-10000, 10000, -10000), new Vector3(0, 0, 0), Vector3.UnitY);
+         var proj = Matrix.PerspectiveFovLH((float)Math.PI / 4.0f, form.ClientSize.Width / (float)form.ClientSize.Height, 0.1f, 100000.0f);
          viewProj = Matrix.Multiply(view, proj);
       }
 
-      public void LoadModels() {
-         // Instantiate Vertex buffer from vertex data
-         vertexBuffers.Add(Buffer.Create(device, BindFlags.VertexBuffer, new[] {
-            // 3D coordinates              UV Texture coordinates
-            -1.0f, -1.0f, -1.0f, 1.0f,     0.0f, 1.0f, // Front
-            -1.0f,  1.0f, -1.0f, 1.0f,     0.0f, 0.0f,
-             1.0f,  1.0f, -1.0f, 1.0f,     1.0f, 0.0f,
-            -1.0f, -1.0f, -1.0f, 1.0f,     0.0f, 1.0f,
-             1.0f,  1.0f, -1.0f, 1.0f,     1.0f, 0.0f,
-             1.0f, -1.0f, -1.0f, 1.0f,     1.0f, 1.0f,
-
-            -1.0f, -1.0f,  1.0f, 1.0f,     1.0f, 0.0f, // BACK
-             1.0f,  1.0f,  1.0f, 1.0f,     0.0f, 1.0f,
-            -1.0f,  1.0f,  1.0f, 1.0f,     1.0f, 1.0f,
-            -1.0f, -1.0f,  1.0f, 1.0f,     1.0f, 0.0f,
-             1.0f, -1.0f,  1.0f, 1.0f,     0.0f, 0.0f,
-             1.0f,  1.0f,  1.0f, 1.0f,     0.0f, 1.0f,
-
-            -1.0f, 1.0f, -1.0f,  1.0f,     0.0f, 1.0f, // Top
-            -1.0f, 1.0f,  1.0f,  1.0f,     0.0f, 0.0f,
-             1.0f, 1.0f,  1.0f,  1.0f,     1.0f, 0.0f,
-            -1.0f, 1.0f, -1.0f,  1.0f,     0.0f, 1.0f,
-             1.0f, 1.0f,  1.0f,  1.0f,     1.0f, 0.0f,
-             1.0f, 1.0f, -1.0f,  1.0f,     1.0f, 1.0f,
-
-            -1.0f,-1.0f, -1.0f,  1.0f,     1.0f, 0.0f, // Bottom
-             1.0f,-1.0f,  1.0f,  1.0f,     0.0f, 1.0f,
-            -1.0f,-1.0f,  1.0f,  1.0f,     1.0f, 1.0f,
-            -1.0f,-1.0f, -1.0f,  1.0f,     1.0f, 0.0f,
-             1.0f,-1.0f, -1.0f,  1.0f,     0.0f, 0.0f,
-             1.0f,-1.0f,  1.0f,  1.0f,     0.0f, 1.0f,
-
-            -1.0f, -1.0f, -1.0f, 1.0f,     0.0f, 1.0f, // Left
-            -1.0f, -1.0f,  1.0f, 1.0f,     0.0f, 0.0f,
-            -1.0f,  1.0f,  1.0f, 1.0f,     1.0f, 0.0f,
-            -1.0f, -1.0f, -1.0f, 1.0f,     0.0f, 1.0f,
-            -1.0f,  1.0f,  1.0f, 1.0f,     1.0f, 0.0f,
-            -1.0f,  1.0f, -1.0f, 1.0f,     1.0f, 1.0f,
-
-             1.0f, -1.0f, -1.0f, 1.0f,     1.0f, 0.0f, // Right
-             1.0f,  1.0f,  1.0f, 1.0f,     0.0f, 1.0f,
-             1.0f, -1.0f,  1.0f, 1.0f,     1.0f, 1.0f,
-             1.0f, -1.0f, -1.0f, 1.0f,     1.0f, 0.0f,
-             1.0f,  1.0f, -1.0f, 1.0f,     0.0f, 0.0f,
-             1.0f,  1.0f,  1.0f, 1.0f,     0.0f, 1.0f
-         }));
-
-         var model = new Model {
-            vertexBufferIndex = 0,
-            vertexOffset = 0,
-            vertexCount = 36,
-
-            indexBufferIndex = -1,
-            indexOffset = -1,
-            indexCount = -1,
-            texture = Resource.FromFile<Texture2D>(device, "GeneticaMortarlessBlocks.jpg")
-         };
-
-         model.textureSRV = new ShaderResourceView(device, model.texture);
-
-         models.Add(model);
+      public void LoadModels(List<float[]> vertexBuffers_, List<ushort[]> indexBuffers_, List<byte[]> textures_, List<Model> models_) {
+         vertexBuffers_.ForEach(x => vertexBuffers.Add(Buffer.Create(device, BindFlags.VertexBuffer, x)));
+         indexBuffers_.ForEach(x => indexBuffers.Add(Buffer.Create(device, BindFlags.IndexBuffer, x)));
+         textures_.ForEach(x => textures.Add(Resource.FromMemory<Texture2D>(device, x)));
+         models_.ForEach(x => models.Add(new InternalModel {
+                                            vertexBufferIndex = x.vertexBufferIndex,
+                                            vertexOffset = x.vertexOffset,
+                                            vertexCount = x.vertexCount,
+                                            indexBufferIndex = x.indexBufferIndex,
+                                            indexOffset = x.indexOffset,
+                                            indexCount = x.indexCount,
+                                            textureSRV = new ShaderResourceView(device, textures[x.textureIndex])
+                                         }));
       }
 
       public void Shutdown() {

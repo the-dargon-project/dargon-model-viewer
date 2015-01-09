@@ -6,11 +6,12 @@ using SharpDX.Windows;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace Dargon.ModelViewer {
-   public partial class ModelViewer {
-      public ModelViewer() {
-         indexBuffers = new List<Buffer>();
-         models = new List<Model>();
+   public partial class ModelViewerWindow {
+      public ModelViewerWindow() {
          vertexBuffers = new List<Buffer>();
+         indexBuffers = new List<Buffer>();
+         textures = new List<Texture2D>();
+         models = new List<InternalModel>();
       }
 
       private RenderForm form;
@@ -33,7 +34,8 @@ namespace Dargon.ModelViewer {
       private List<Buffer> vertexBuffers;
       private List<Buffer> indexBuffers;
 
-      private List<Model> models;
+      private List<Texture2D> textures;
+      private List<InternalModel> models;
 
       private SamplerState textureSampler;
 

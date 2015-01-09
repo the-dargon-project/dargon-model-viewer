@@ -4,8 +4,8 @@ using SharpDX.DXGI;
 using SharpDX.Windows;
 
 namespace Dargon.ModelViewer {
-   public partial class ModelViewer {
-      public void Run() {
+   public partial class ModelViewerWindow {
+      public void Start() {
          // Bind our Run() function to the delegate of the RenderForm
          RenderLoop.Run(form, RunInternal);
       }
@@ -22,14 +22,15 @@ namespace Dargon.ModelViewer {
          immediateContext.VertexShader.SetConstantBuffer(0, vertexShaderPerFrameConstantBuffer);
 
          foreach (var model in models) {
-            immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffers[model.vertexBufferIndex], Utilities.SizeOf<Vector4>() + Utilities.SizeOf<Vector2>(), 0));
+            immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(vertexBuffers[model.vertexBufferIndex], 40, 0));
+            immediateContext.InputAssembler.SetIndexBuffer(indexBuffers[model.indexBufferIndex], Format.R16_UInt, 0);
             immediateContext.PixelShader.SetShaderResource(0, model.textureSRV);
 
-            immediateContext.Draw(model.vertexCount, 0);
+            immediateContext.DrawIndexed(model.indexCount, model.indexOffset, model.vertexOffset);
          }
 
          // Present
-         swapChain.Present(0, PresentFlags.None);
+         swapChain.Present(1, PresentFlags.None);
       }
    }
 }

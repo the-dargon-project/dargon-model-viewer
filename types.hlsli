@@ -1,6 +1,7 @@
 struct VertexIn {
-	float4 pos : POSITION;
-	float2 tex : TEXCOORD;
+	float4 pos    : POSITION;
+	float4 normal : NORMAL;
+	float2 tex    : TEXCOORD;
 };
 
 struct PixelIn {
