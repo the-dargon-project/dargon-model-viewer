@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -43,11 +44,17 @@ namespace Dargon.ModelViewer {
          backBuffer.Dispose();
 
          // Load the Vertex and Pixel shaders
-         var vertexShaderByteCode = ShaderBytecode.FromFile("vs.cso");
-         vertexShader = new VertexShader(device, vertexShaderByteCode);
+         ShaderBytecode vertexShaderByteCode;
+         using (var stream = new MemoryStream(Properties.Resources.vs)) {
+            vertexShaderByteCode = ShaderBytecode.FromStream(stream);
+            vertexShader = new VertexShader(device, vertexShaderByteCode);
+         }
 
-         var pixelShaderByteCode = ShaderBytecode.FromFile("ps.cso");
-         pixelShader = new PixelShader(device, pixelShaderByteCode);
+         ShaderBytecode pixelShaderByteCode;
+         using (var stream = new MemoryStream(Properties.Resources.ps)) {
+            pixelShaderByteCode = ShaderBytecode.FromStream(stream);
+            pixelShader = new PixelShader(device, pixelShaderByteCode);
+         }
 
          // Create the input layout for the COMPLEX vertex
          inputLayout = new InputLayout(device, ShaderSignature.GetInputSignature(vertexShaderByteCode), new[] {

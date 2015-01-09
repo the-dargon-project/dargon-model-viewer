@@ -59,5 +59,25 @@ namespace Dargon.ModelViewer.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] ps {
+            get {
+                object obj = ResourceManager.GetObject("ps", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] vs {
+            get {
+                object obj = ResourceManager.GetObject("vs", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
