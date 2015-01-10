@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("liblolmap-viewer")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Dargon.ModelViewer")]
+[assembly: AssemblyDescription("Dargon Model Viewer")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("liblolmap-viewer")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCompany("The Dargon Project")]
+[assembly: AssemblyProduct("libdargon.filesystem-api")]
+[assembly: AssemblyCopyright("Copyright © ItzWarty 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
