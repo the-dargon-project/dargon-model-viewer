@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using SharpDX;
+using System.Drawing;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Windows;
@@ -25,6 +25,10 @@ namespace Dargon.ModelViewer {
       private DepthStencilView depthStencilView;
       private RenderTargetView backbufferRTV;
 
+      private DepthStencilState depthStencilState;
+      private RasterizerState rasterizerState;
+      private BlendState blendState;
+
       private VertexShader vertexShader;
       private PixelShader pixelShader;
 
@@ -38,7 +42,8 @@ namespace Dargon.ModelViewer {
       private List<Texture2D> textures;
       private List<InternalModel> models;
 
-      private SamplerState textureSampler;
+      private SamplerState textureSamplerWrap;
+      private SamplerState textureSamplerBorder;
 
       private Camera camera;
       private float cameraPanScale;

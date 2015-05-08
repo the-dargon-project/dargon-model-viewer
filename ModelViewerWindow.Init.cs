@@ -83,7 +83,7 @@ namespace Dargon.ModelViewer {
 
          // Create Depth Buffer & View
          depthBuffer = new Texture2D(device, new Texture2DDescription {
-            Format = Format.D32_Float_S8X24_UInt,
+            Format = Format.D32_Float,
             ArraySize = 1,
             MipLevels = 1,
             Width = form.ClientSize.Width,
@@ -98,17 +98,30 @@ namespace Dargon.ModelViewer {
          depthStencilView = new DepthStencilView(device, depthBuffer);
 
          // Create the default texture sampler
-         textureSampler = new SamplerState(device, new SamplerStateDescription {
-            Filter = Filter.MinMagMipLinear,
-            AddressU = TextureAddressMode.Wrap,
-            AddressV = TextureAddressMode.Wrap,
-            AddressW = TextureAddressMode.Wrap,
-            BorderColor = Color.Black,
-            ComparisonFunction = Comparison.Never,
+         textureSamplerWrap = new SamplerState(device, new SamplerStateDescription {
+            Filter = Filter.MinMagMipPoint,
+            AddressU = SharpDX.Direct3D11.TextureAddressMode.Wrap,
+            AddressV = SharpDX.Direct3D11.TextureAddressMode.Wrap,
+            AddressW = SharpDX.Direct3D11.TextureAddressMode.Wrap,
+            BorderColor = new Color4(0.0f, 0.0f, 0.0f, 0.0f),
+            ComparisonFunction = Comparison.Always,
             MaximumAnisotropy = 16,
             MipLodBias = 0,
             MinimumLod = 0,
-            MaximumLod = 16
+            MaximumLod = 3.402823466e+38f//D3D11_FLOAT32_MAX
+         });
+
+         textureSamplerBorder = new SamplerState(device, new SamplerStateDescription {
+            Filter = Filter.MinMagMipPoint,
+            AddressU = SharpDX.Direct3D11.TextureAddressMode.Border,
+            AddressV = SharpDX.Direct3D11.TextureAddressMode.Border,
+            AddressW = SharpDX.Direct3D11.TextureAddressMode.Border,
+            BorderColor = new Color4(0.0f, 0.0f, 0.0f, 0.0f),
+            ComparisonFunction = Comparison.Always,
+            MaximumAnisotropy = 16,
+            MipLodBias = 0,
+            MinimumLod = 0,
+            MaximumLod = 3.402823466e+38f//D3D11_FLOAT32_MAX
          });
 
          // Prepare the camera
@@ -116,18 +129,72 @@ namespace Dargon.ModelViewer {
          camera.UpdateProjectionMatrix(clientWidth, clientHeight, 100000.0f, 0.1f);
          this.cameraPanScale = cameraPanScale;
          this.cameraScrollScale = cameraScrollScale;
+
+         // Create the depth stencil state
+         depthStencilState = new DepthStencilState(device, new DepthStencilStateDescription {
+            IsDepthEnabled = true,
+            DepthWriteMask = DepthWriteMask.All,
+            DepthComparison = Comparison.GreaterEqual,
+            IsStencilEnabled = false,
+            StencilReadMask = 0xff, //D3D11_DEFAULT_STENCIL_READ_MASK
+            StencilWriteMask = 0xff, //D3D11_DEFAULT_STENCIL_WRITE_MASK
+            FrontFace = new DepthStencilOperationDescription {
+               DepthFailOperation = StencilOperation.Keep,
+               FailOperation = StencilOperation.Keep,
+               PassOperation = StencilOperation.Replace,
+               Comparison = Comparison.Always
+            },
+            BackFace = new DepthStencilOperationDescription {
+               DepthFailOperation = StencilOperation.Keep,
+               FailOperation = StencilOperation.Keep,
+               PassOperation = StencilOperation.Replace,
+               Comparison = Comparison.Always
+            }
+         });
+
+         // Create the raster state
+         rasterizerState = new RasterizerState(device, new RasterizerStateDescription {
+            IsAntialiasedLineEnabled = false,
+            CullMode = CullMode.Back,
+            DepthBias = 0,
+            DepthBiasClamp = 0.0f,
+            IsDepthClipEnabled = true,
+            FillMode = FillMode.Solid,
+            IsFrontCounterClockwise = false,
+            IsMultisampleEnabled = true,
+            IsScissorEnabled = false,
+            SlopeScaledDepthBias = 0
+         });
+
+         // Create the blend state
+         var blendDesc = new BlendStateDescription {
+            AlphaToCoverageEnable = false,
+            IndependentBlendEnable = false
+         };
+
+         for (var i = 0; i < 8; ++i) {
+            blendDesc.RenderTarget[i].IsBlendEnabled = true;
+            blendDesc.RenderTarget[i].BlendOperation = BlendOperation.Add;
+            blendDesc.RenderTarget[i].AlphaBlendOperation = BlendOperation.Add;
+            blendDesc.RenderTarget[i].DestinationBlend = BlendOption.InverseSourceAlpha;
+            blendDesc.RenderTarget[i].DestinationAlphaBlend = BlendOption.One;
+            blendDesc.RenderTarget[i].RenderTargetWriteMask = ColorWriteMaskFlags.All;
+            blendDesc.RenderTarget[i].SourceBlend = BlendOption.SourceAlpha;
+            blendDesc.RenderTarget[i].SourceAlphaBlend = BlendOption.One;
+         }
+
+         blendState = new BlendState(device, blendDesc);
+
          // Prepare the stages that don't change per frame
          immediateContext.InputAssembler.InputLayout = inputLayout;
          immediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
          immediateContext.VertexShader.Set(vertexShader);
          immediateContext.PixelShader.Set(pixelShader);
-         immediateContext.PixelShader.SetSampler(0, textureSampler);
          immediateContext.Rasterizer.SetViewport(new Viewport(0, 0, form.ClientSize.Width, form.ClientSize.Height, 0.0f, 1.0f));
+         immediateContext.Rasterizer.State = rasterizerState;
          immediateContext.OutputMerger.SetTargets(depthStencilView, backbufferRTV);
-
-         var view = Matrix.LookAtLH(new Vector3(-10000, 10000, -10000), new Vector3(0, 0, 0), Vector3.UnitY);
-         var proj = Matrix.PerspectiveFovLH((float)Math.PI / 4.0f, form.ClientSize.Width / (float)form.ClientSize.Height, 0.1f, 100000.0f);
-         viewProj = Matrix.Multiply(view, proj);
+         immediateContext.OutputMerger.SetDepthStencilState(depthStencilState);
+         immediateContext.OutputMerger.SetBlendState(blendState);
       }
 
       public void LoadModels(List<float[]> vertexBuffers_, List<ushort[]> indexBuffers_, List<byte[]> textures_, List<Model> models_) {
@@ -141,7 +208,8 @@ namespace Dargon.ModelViewer {
                                             indexBufferIndex = x.indexBufferIndex,
                                             indexOffset = x.indexOffset,
                                             indexCount = x.indexCount,
-                                            textureSRV = new ShaderResourceView(device, textures[x.textureIndex])
+                                            textureSRV = new ShaderResourceView(device, textures[x.textureIndex]),
+                                            textureAddressMode = x.textureAddressMode
                                          }));
       }
 
