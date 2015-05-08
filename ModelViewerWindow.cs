@@ -12,6 +12,7 @@ namespace Dargon.ModelViewer {
          indexBuffers = new List<Buffer>();
          textures = new List<Texture2D>();
          models = new List<InternalModel>();
+         mouseLastLocation = new Point();
       }
 
       private RenderForm form;
@@ -39,6 +40,9 @@ namespace Dargon.ModelViewer {
 
       private SamplerState textureSampler;
 
-      private Matrix viewProj;
+      private Camera camera;
+      private float cameraPanScale;
+      private float cameraScrollScale;
+      private Point mouseLastLocation;
    }
 }

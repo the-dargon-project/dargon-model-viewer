@@ -13,8 +13,19 @@ using Resource = SharpDX.Direct3D11.Resource;
 
 namespace Dargon.ModelViewer {
    public partial class ModelViewerWindow {
-      public void Initialize() {
-         form = new RenderForm("The Dargon Project Model Viewer");
+      public void Initialize(int clientWidth, int clientHeight, 
+                             float cameraTheta, float cameraPhi, float cameraRadius, 
+                             float cameraTargetX, float cameraTargetY, float cameraTargetZ,
+                             float cameraPanScale, float cameraScrollScale) {
+         form = new RenderForm("The Dargon Project Model Viewer") {
+            Width = clientWidth,
+            Height = clientHeight
+         };
+
+         form.MouseDown += MouseDown;
+         form.MouseUp += MouseUp;
+         form.MouseMove += MouseMove;
+         form.MouseWheel += MouseWheel;
 
          // SwapChain description
          var desc = new SwapChainDescription {
@@ -100,6 +111,11 @@ namespace Dargon.ModelViewer {
             MaximumLod = 16
          });
 
+         // Prepare the camera
+         camera = new Camera(cameraTheta, cameraPhi, cameraRadius, cameraScrollScale * 10.0f, new Vector3(cameraTargetX, cameraTargetY, cameraTargetZ));
+         camera.UpdateProjectionMatrix(clientWidth, clientHeight, 100000.0f, 0.1f);
+         this.cameraPanScale = cameraPanScale;
+         this.cameraScrollScale = cameraScrollScale;
          // Prepare the stages that don't change per frame
          immediateContext.InputAssembler.InputLayout = inputLayout;
          immediateContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
