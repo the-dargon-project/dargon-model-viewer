@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SharpDX;
 
-namespace Dargon.ModelViewer {
+namespace Dargon.Renderer {
    public class Camera {
 	   public Camera() {
 	      m_theta = 0.0f;

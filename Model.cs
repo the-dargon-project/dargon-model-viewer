@@ -1,34 +1,25 @@
-﻿using SharpDX.Direct3D11;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SharpDX.Direct3D11;
+using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace Dargon.ModelViewer {
+namespace Dargon.Renderer {
    public enum TextureAddressMode {
       Wrap,
       Border
    }
 
    public class Model {
-      public int vertexBufferIndex;
-      public int vertexOffset;
-      public int vertexCount;
-
-      public int indexBufferIndex;
-      public int indexOffset;
-      public int indexCount;
-
-      public int textureIndex;
-      public TextureAddressMode textureAddressMode;
-   }
-
-   internal class InternalModel {
-      public int vertexBufferIndex;
-      public int vertexOffset;
-      public int vertexCount;
-
-      public int indexBufferIndex;
-      public int indexOffset;
-      public int indexCount;
-
-      public ShaderResourceView textureSRV;
-      public TextureAddressMode textureAddressMode;
+      public Buffer vertexBuffer { get; set; }
+      public int vertexOffset { get; set; }
+      public int vertexCount { get; set; }
+      public Buffer indexBuffer { get; set; }
+      public int indexOffset { get; set; }
+      public int indexCount { get; set; }
+      public ShaderResourceView textureSRV { get; set; }
+      public TextureAddressMode textureAddressMode { get; set; }
    }
 }

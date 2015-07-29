@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Dargon.SceneViewer")]
-[assembly: AssemblyDescription("Dargon Scene Viewer")]
+[assembly: AssemblyTitle("model-viewer")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("The Dargon Project")]
-[assembly: AssemblyProduct("Dargon.SceneViewer")]
-[assembly: AssemblyCopyright("Copyright © ItzWarty 2014")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("model-viewer")]
+[assembly: AssemblyCopyright("Copyright ©  2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("53fc10a5-af8e-4d2a-afe5-39fad83f87e3")]
+[assembly: Guid("024edf71-2210-41f2-a951-eccfd11b5651")]
 
 // Version information for an assembly consists of the following four values:
 //
