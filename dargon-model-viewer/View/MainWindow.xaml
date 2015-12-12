@@ -4,13 +4,21 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:dx="clr-namespace:Microsoft.Wpf.Interop.DirectX;assembly=Microsoft.Wpf.Interop.DirectX"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
         mc:Ignorable="d"
         Title="MainWindow" Height="720" Width="1280">
-   <Grid x:Name="GridHost">
-      <Image Stretch="Fill">
-         <Image.Source>
-            <dx:D3D11Image x:Name="InteropImage" />
-         </Image.Source>
-      </Image>
+   <Grid>
+      <Grid x:Name="ImageHostGrid">
+         <Image Stretch="Fill">
+            <Image.Source>
+               <dx:D3D11Image x:Name="InteropImage" />
+            </Image.Source>
+         </Image>
+      </Grid>
+      <Grid Width="200" Height="200" HorizontalAlignment="Right" VerticalAlignment="Top">
+         <Label Content="{Binding ClickedTexture}" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Top"/>
+         <Button Content="Change To Marrowak" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Command="{Binding ButtonClickCommand}" Margin="0,50,0,0" />
+      </Grid>
+      
    </Grid>
 </Window>

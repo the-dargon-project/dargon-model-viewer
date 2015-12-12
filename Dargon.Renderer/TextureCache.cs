@@ -29,12 +29,24 @@ namespace Dargon.Renderer {
          }
 
          // Create new texture and SRV
-         var texture = Resource.FromMemory<Texture2D>(device, File.ReadAllBytes(fullPath));
+         var texture = Resource.FromMemory<Texture2D>(device, File.ReadAllBytes(Path.Combine(BasePath, textureName)));
          var srv = new ShaderResourceView(device, texture);
 
-         textures.Add(fullPath, new TextureAndSRV(texture, srv));
+         textures.Add(textureName, new TextureAndSRV(texture, srv));
 
          return srv;
+      }
+
+      public void SwapSRV(string textureName, string newTexturePath) {
+         var texAndSRV = textures[textureName];
+         texAndSRV.SRV.Dispose();
+         texAndSRV.Texture.Dispose();
+
+         // Create new texture and SRV
+         var texture = Resource.FromMemory<Texture2D>(device, File.ReadAllBytes(newTexturePath));
+         var srv = new ShaderResourceView(device, texture);
+
+         textures[textureName] = new TextureAndSRV(texture, srv);
       }
    }
 }
