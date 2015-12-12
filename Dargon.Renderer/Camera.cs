@@ -47,12 +47,14 @@ namespace Dargon.Renderer {
       private readonly float pivotDistance;
       private Vector3 lookAt;
 
+      private float clientWidth;
+      private float clientHeight;
 
       private Matrix view;
       private Matrix proj;
 
       private bool viewNeedsUpdate;
-
+      
       private const float TWO_PI = (float)(2 * Math.PI);
 
       /**
@@ -139,6 +141,9 @@ namespace Dargon.Renderer {
        * @param farClip         The distance to the far clip plane
        */
       public void UpdateProjectionMatrix(float clientWidth, float clientHeight, float nearClip, float farClip) {
+         this.clientWidth = clientWidth;
+         this.clientHeight = clientHeight;
+
          proj = Matrix.PerspectiveFovLH((float)Math.PI * 0.25f, clientWidth / clientHeight, nearClip, farClip);
       }
 
@@ -173,6 +178,33 @@ namespace Dargon.Renderer {
        */
       public Matrix GetProj() { return proj; }
 
+      public Ray GetRayFromScreenPoint(float screenPointX, float screenPointY) {
+         // Calculate normalized device coords
+         var x = (2.0f * screenPointX / clientWidth) - 1.0f;
+         var y = 1.0f - (2.0f * screenPointY / clientHeight);
+         var z = 1.0f;
+         var w = 1.0f;
+         
+         var ndc = new Vector4(x, y, z, w);
+
+         var invView = GetView();
+         invView.Invert();
+         var invProj = GetProj();
+         invProj.Invert();
+
+         var rayViewSpace = Vector4.Transform(ndc, invProj);
+         rayViewSpace.Z = 1.0f;
+         rayViewSpace.W = 0.0f;
+
+         var rayWorldSpace = Vector4.Transform(rayViewSpace, invView);
+
+         var direction = new Vector3(rayWorldSpace.X, rayWorldSpace.Y, rayWorldSpace.Z);
+         direction.Normalize();
+
+         return new Ray(GetCameraPosition(), direction);
+      }
+
+
       /**
 	    * Re-creates the view matrix. Don't call this directly. Lazy load
 	    * the view matrix with GetView().       
@@ -195,6 +227,6 @@ namespace Dargon.Renderer {
 
          return new Vector3(x, y, z);
       }
-   };
+   }
 
 }
