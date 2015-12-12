@@ -14,9 +14,9 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace Dargon.Renderer {
    public class Renderer {
-      public Renderer(IWin32Window form) {
+      public Renderer(IWin32Window form, TextureCache textureCache) {
+         this.textureCache = textureCache;
          sceneElements = new List<SceneElement>();
-         TextureCache = new TextureCache();
 
          // SwapChain description
          var desc = new SwapChainDescription() {
@@ -38,6 +38,7 @@ namespace Dargon.Renderer {
          // Create Device and SwapChain
          Device.CreateWithSwapChain(DriverType.Hardware, flag | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
          immediateContext = device.ImmediateContext;
+         textureCache.device = device;
 
          // Load the Vertex and Pixel shaders
          ShaderBytecode vertexShaderByteCode;
@@ -186,6 +187,8 @@ namespace Dargon.Renderer {
 
       public Camera Camera;
 
+      private TextureCache textureCache;
+
       private class SceneElement {
          public SceneElement(RenderMesh mesh, Matrix transform) {
             Mesh = mesh;
@@ -196,8 +199,6 @@ namespace Dargon.Renderer {
          public Matrix Transform;
       }
       private List<SceneElement> sceneElements;
-
-      public TextureCache TextureCache;
 
 
       public void AddMeshToScene(Mesh mesh, Dargon.Scene.Api.Util.Vector3 position) {
@@ -274,7 +275,7 @@ namespace Dargon.Renderer {
             immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(sceneElement.Mesh.VertexBuffer, 24, 0));
             immediateContext.InputAssembler.SetIndexBuffer(sceneElement.Mesh.IndexBuffer, Format.R16_UInt, 0);
 
-            var textureSRV = TextureCache.GetSRV(device, sceneElement.Mesh.TexturePath);
+            var textureSRV = textureCache.GetSRV(sceneElement.Mesh.TexturePath);
             immediateContext.PixelShader.SetShaderResource(0, textureSRV);
 
             immediateContext.DrawIndexed(sceneElement.Mesh.IndexCount, 0, 0);

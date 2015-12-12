@@ -9,6 +9,7 @@ namespace Dargon.Renderer {
       }
 
       public string BasePath;
+      public Device device;
 
       private class TextureAndSRV {
          public TextureAndSRV(Texture2D texture, ShaderResourceView srv) {
@@ -22,10 +23,9 @@ namespace Dargon.Renderer {
 
       private Dictionary<string, TextureAndSRV> textures;  
 
-      public ShaderResourceView GetSRV(Device device, string textureName) {
-         var fullPath = Path.Combine(BasePath, textureName);
-         if (textures.ContainsKey(fullPath)) {
-            return textures[fullPath].SRV;
+      public ShaderResourceView GetSRV(string textureName) {
+         if (textures.ContainsKey(textureName)) {
+            return textures[textureName].SRV;
          }
 
          // Create new texture and SRV
