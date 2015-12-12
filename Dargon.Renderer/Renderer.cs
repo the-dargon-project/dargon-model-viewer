@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using Dargon.Renderer.Properties;
 using Dargon.Scene.Api;
@@ -283,6 +284,28 @@ namespace Dargon.Renderer {
 
          immediateContext.Flush();
          swapChain.Present(0, PresentFlags.None);
+      }
+
+      public string GetTextureAtScreenLocation(float screenLocationX, float screenLocationY) {
+         var ray = Camera.GetRayFromScreenPoint(screenLocationX,screenLocationY);
+
+         string intersectedMeshTexture = null;
+         var intersections = from sceneElement in sceneElements where sceneElement.Mesh.AABB.Intersects(ref ray) select sceneElement.Mesh;
+
+         var closestIntersection = float.MaxValue;
+         foreach (var mesh in intersections) {
+            foreach (var triangle in mesh.Triangles) {
+               float distance;
+               if (Collision.RayIntersectsTriangle(ref ray, ref triangle.V0, ref triangle.V1, ref triangle.V2, out distance)) {
+                  if (distance < closestIntersection) {
+                     closestIntersection = distance;
+                     intersectedMeshTexture = mesh.TexturePath;
+                  }
+               }
+            }
+         }
+
+         return intersectedMeshTexture;
       }
    }
 }
