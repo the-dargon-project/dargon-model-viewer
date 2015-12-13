@@ -146,16 +146,6 @@ namespace Dargon.ModelViewer.ViewModel {
          }
       }
 
-      private class LoadMeshThreadArg {
-         public LoadMeshThreadArg(string[] textureNames, TextureCache textureCache) {
-            TextureNames = textureNames;
-            TextureCache = textureCache;
-         }
-
-         public string[] TextureNames;
-         public TextureCache TextureCache;
-      }
-
       public event PropertyChangedEventHandler PropertyChanged;
 
       protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) {
