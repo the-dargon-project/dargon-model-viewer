@@ -36,7 +36,7 @@ namespace Dargon.Renderer {
 
       public ShaderResourceView GetSRV(string textureName) {
          TextureAndSRV returnValue;
-         return textures.TryGetValue(textureName, out returnValue) ? returnValue.SRV : colorTextures.GetTextureViewOfColor(Color.Red);
+         return textures.TryGetValue(textureName, out returnValue) ? returnValue.SRV : colorTextures.GetTextureViewOfColor(Color.Gray);
       }
 
       public void ReplaceTexture(string textureName, string newTexturePath) {
