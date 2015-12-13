@@ -79,7 +79,7 @@ namespace Dargon.Renderer {
 
          // Create the default texture sampler
          textureSamplerWrap = new SamplerState(device, new SamplerStateDescription {
-            Filter = Filter.MinMagMipLinear,
+            Filter = Filter.MinMagMipPoint,
             AddressU = TextureAddressMode.Wrap,
             AddressV = TextureAddressMode.Wrap,
             AddressW = TextureAddressMode.Wrap,
