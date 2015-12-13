@@ -46,7 +46,10 @@ namespace Dargon.ModelViewer.ViewModel {
       }
 
       public void GridSingleClick(Point mouseLocation) {
-         ClickedTexture = renderer.GetTextureAtScreenLocation((float)mouseLocation.X, (float)mouseLocation.Y);
+         string pickedTexture;
+         renderer.PickSceneAtScreenLocation((float)mouseLocation.X, (float)mouseLocation.Y, out pickedTexture);
+
+         ClickedTexture = pickedTexture;
       }
 
 
@@ -63,7 +66,14 @@ namespace Dargon.ModelViewer.ViewModel {
       }
 
 
-      private ICommand buttonClickCommand;
+      private ICommand changeTextureCommand;
+      public ICommand ChangeTextureCommand {
+         get {
+            return changeTextureCommand ?? (changeTextureCommand = new ActionCommand(o => {
+               textureCache.ReplaceTexture(ClickedTexture, @"T:\Programming_Projects\dargon-root\dev\dargon-model-viewer\dargon-model-viewer\bin\Debug\marowak.png");
+            }, o => mapLoaded));
+         }
+      }
 
       private bool mapLoaded;
       private ICommand loadMapCommand;

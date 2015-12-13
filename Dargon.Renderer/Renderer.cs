@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Dargon.Renderer.Properties;
 using Dargon.Scene.Api;
+using Dargon.Scene.Api.Util;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -15,8 +16,9 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace Dargon.Renderer {
    public class Renderer {
-      public Renderer(IWin32Window form, TextureCache textureCache) {
+      public Renderer(IWin32Window form, ColorTextures colorTextures, TextureCache textureCache) {
          this.textureCache = textureCache;
+         this.colorTextures = colorTextures;
          sceneElements = new List<SceneElement>();
 
          // SwapChain description
@@ -39,7 +41,10 @@ namespace Dargon.Renderer {
          // Create Device and SwapChain
          Device.CreateWithSwapChain(DriverType.Hardware, flag | DeviceCreationFlags.BgraSupport, desc, out device, out swapChain);
          immediateContext = device.ImmediateContext;
-         textureCache.device = device;
+
+         // Initialize helper classes
+         colorTextures.Initialize(device);
+         textureCache.Initialize(device);
 
          // Load the Vertex and Pixel shaders
          ShaderBytecode vertexShaderByteCode;
@@ -125,7 +130,7 @@ namespace Dargon.Renderer {
          });
 
          // Create the raster state
-         rasterizerState = new RasterizerState(device, new RasterizerStateDescription {
+         defaultRastState = new RasterizerState(device, new RasterizerStateDescription {
             IsAntialiasedLineEnabled = false,
             CullMode = CullMode.Back,
             DepthBias = 0,
@@ -137,6 +142,19 @@ namespace Dargon.Renderer {
             IsScissorEnabled = false,
             SlopeScaledDepthBias = 0
          });
+         wireframeOverlayRastState = new RasterizerState(device, new RasterizerStateDescription {
+            IsAntialiasedLineEnabled = false,
+            CullMode = CullMode.Back,
+            DepthBias = (int)(0.0001 / (1 / Math.Pow(2.0, 23.0))),
+            DepthBiasClamp = 0.001f,
+            IsDepthClipEnabled = true,
+            FillMode = FillMode.Wireframe,
+            IsFrontCounterClockwise = false,
+            IsMultisampleEnabled = true,
+            IsScissorEnabled = false,
+            SlopeScaledDepthBias = 0
+         });
+         
 
          // Create the blend state
          var blendDesc = new BlendStateDescription {
@@ -158,7 +176,6 @@ namespace Dargon.Renderer {
          blendState = new BlendState(device, blendDesc);
 
          // Prepare the stages that don't change per frame
-         immediateContext.Rasterizer.State = rasterizerState;
          immediateContext.OutputMerger.SetDepthStencilState(depthStencilState);
          immediateContext.OutputMerger.SetBlendState(blendState);
          immediateContext.PixelShader.SetSampler(0, textureSamplerWrap);
@@ -174,7 +191,8 @@ namespace Dargon.Renderer {
       private RenderTargetView backbufferRTV;
 
       private DepthStencilState depthStencilState;
-      private RasterizerState rasterizerState;
+      private RasterizerState defaultRastState;
+      private RasterizerState wireframeOverlayRastState;
       private BlendState blendState;
 
       private InputLayout inputLayout;
@@ -186,9 +204,15 @@ namespace Dargon.Renderer {
       private SamplerState textureSamplerWrap;
       private SamplerState textureSamplerBorder;
 
+
       public Camera Camera;
 
       private TextureCache textureCache;
+      private ColorTextures colorTextures;
+
+      private SceneElement pickedMesh;
+      private Triangle pickedTriangle;
+
 
       private class SceneElement {
          public SceneElement(RenderMesh mesh, Matrix transform) {
@@ -200,6 +224,7 @@ namespace Dargon.Renderer {
          public Matrix Transform;
       }
       private List<SceneElement> sceneElements;
+      
 
 
       public void AddMeshToScene(Mesh mesh, Dargon.Scene.Api.Util.Vector3 position) {
@@ -267,43 +292,64 @@ namespace Dargon.Renderer {
          var view = Camera.GetViewMatrix();
          var proj = Camera.GetProjMatrix();
          var viewProj = Matrix.Multiply(view, proj);
+         Matrix worldViewProj;
+
+         // Render the main scene
+         immediateContext.Rasterizer.State = defaultRastState;
 
          foreach (var sceneElement in sceneElements) {
-            var worldViewProj = sceneElement.Transform * viewProj;
+            worldViewProj = sceneElement.Transform * viewProj;
             worldViewProj.Transpose();
             immediateContext.UpdateSubresource(ref worldViewProj, vertexShaderPerFrameConstantBuffer);
 
             immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(sceneElement.Mesh.VertexBuffer, 24, 0));
             immediateContext.InputAssembler.SetIndexBuffer(sceneElement.Mesh.IndexBuffer, Format.R16_UInt, 0);
 
-            var textureSRV = textureCache.GetSRV(sceneElement.Mesh.TexturePath);
-            immediateContext.PixelShader.SetShaderResource(0, textureSRV);
+            immediateContext.PixelShader.SetShaderResource(0, textureCache.GetSRV(sceneElement.Mesh.TexturePath));
 
             immediateContext.DrawIndexed(sceneElement.Mesh.IndexCount, 0, 0);
+         }
+
+         // Render the selected Mesh in wireframe overlay
+         if (pickedMesh != null) {
+            immediateContext.Rasterizer.State = wireframeOverlayRastState;
+            worldViewProj = pickedMesh.Transform * viewProj;
+            worldViewProj.Transpose();
+            immediateContext.UpdateSubresource(ref worldViewProj, vertexShaderPerFrameConstantBuffer);
+
+            immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(pickedMesh.Mesh.VertexBuffer, 24, 0));
+            immediateContext.InputAssembler.SetIndexBuffer(pickedMesh.Mesh.IndexBuffer, Format.R16_UInt, 0);
+
+            immediateContext.PixelShader.SetShaderResource(0, colorTextures.White);
+
+            immediateContext.DrawIndexed(pickedMesh.Mesh.IndexCount, 0, 0);
          }
 
          immediateContext.Flush();
          swapChain.Present(0, PresentFlags.None);
       }
 
-      public string GetTextureAtScreenLocation(float screenLocationX, float screenLocationY) {
+      public void PickSceneAtScreenLocation(float screenLocationX, float screenLocationY, out string pickedTexture) {
          var ray = Camera.GetRayFromScreenPoint(screenLocationX,screenLocationY);
 
-         string intersectedMeshTexture = null;
-         var intersections = from sceneElement in sceneElements where sceneElement.Mesh.AABB.Intersects(ref ray) select sceneElement.Mesh;
+         pickedTexture = null;
+         var intersections = from sceneElement in sceneElements where sceneElement.Mesh.AABB.Intersects(ref ray) select sceneElement;
 
          var closestIntersection = float.MaxValue;
-         foreach (var mesh in intersections) {
-            foreach (var triangle in mesh.Triangles) {
+         foreach (var sceneElement in intersections) {
+            foreach (var triangle in sceneElement.Mesh.Triangles) {
                float distance;
                if (Collision.RayIntersectsTriangle(ref ray, ref triangle.V0, ref triangle.V1, ref triangle.V2, out distance)) {
                   if (distance < closestIntersection) {
                      closestIntersection = distance;
-                     intersectedMeshTexture = mesh.TexturePath;
+                     pickedTexture = sceneElement.Mesh.TexturePath;
+                     pickedMesh = sceneElement;
                   }
                }
             }
          }
+      }
+
       public float DistanceFromViewToFirstSceneObject() {
          var ray = Camera.GetViewRay();
 
@@ -330,7 +376,8 @@ namespace Dargon.Renderer {
          return new AABB(boundingBox.Minimum.X, boundingBox.Minimum.Y, boundingBox.Minimum.Z, boundingBox.Maximum.X, boundingBox.Maximum.Y, boundingBox.Maximum.Z);
       }
 
-         return intersectedMeshTexture;
+      public void SetCamera(float theta, float phi, float radius, Scene.Api.Util.Vector3 lookAt) {
+         Camera.Reset(theta, phi, radius, new SharpDX.Vector3(lookAt.X, lookAt.Y, lookAt.Z));
       }
    }
 }

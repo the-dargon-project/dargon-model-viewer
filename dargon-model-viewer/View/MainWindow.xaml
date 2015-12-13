@@ -16,8 +16,9 @@
          </Image>
       </Grid>
       <Grid Width="200" Height="200" HorizontalAlignment="Right" VerticalAlignment="Top">
-         <Label Content="{Binding ClickedTexture}" HorizontalAlignment="Center" Margin="0,100,0,0" VerticalAlignment="Top"/>
-         <Button Content="Change To Marrowak" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Top" Command="{Binding ButtonClickCommand}" Margin="0,50,0,0" />
+         <Button Content="Load Map" HorizontalAlignment="Center" VerticalAlignment="Top" Command="{Binding LoadMapCommand}" Margin="0,50,0,0" />
+         <Button Content="Change To Marrowak" HorizontalAlignment="Center" VerticalAlignment="Top" Command="{Binding ChangeTextureCommand}" Margin="0,80,0,0" />
+         <Label Content="{Binding ClickedTexture}" HorizontalAlignment="Center" Margin="0,120,0,0" VerticalAlignment="Top"/>
       </Grid>
       
    </Grid>
