@@ -42,7 +42,11 @@ namespace Dargon.ModelViewer.ViewModel {
          if (isNewSurface) {
             renderer.ResizeBackbuffer(resourcePtr);
          }
-         renderer.Render();
+         try {
+            renderer.Render();
+         } catch (Exception e) {
+            Console.WriteLine(e);
+         }
       }
 
       public void GridSingleClick(Point mouseLocation) {

@@ -1,5 +1,6 @@
 ﻿using SharpDX.Direct3D11;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;

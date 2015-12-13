@@ -11,11 +11,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using SDColor = System.Drawing.Color;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace Dargon.Renderer {
    public class Renderer {
+                  
+
       public Renderer(IWin32Window form, ColorTextures colorTextures, TextureCache textureCache) {
          this.textureCache = textureCache;
          this.colorTextures = colorTextures;
@@ -225,8 +228,6 @@ namespace Dargon.Renderer {
       }
       private List<SceneElement> sceneElements;
       
-
-
       public void AddMeshToScene(Mesh mesh, Dargon.Scene.Api.Util.Vector3 position) {
          sceneElements.Add(new SceneElement(new RenderMesh(device, mesh), Matrix.Translation(position.X, position.Y, position.Z)));
       }
@@ -295,38 +296,49 @@ namespace Dargon.Renderer {
          Matrix worldViewProj;
 
          // Render the main scene
-         immediateContext.Rasterizer.State = defaultRastState;
-
-         foreach (var sceneElement in sceneElements) {
-            worldViewProj = sceneElement.Transform * viewProj;
-            worldViewProj.Transpose();
-            immediateContext.UpdateSubresource(ref worldViewProj, vertexShaderPerFrameConstantBuffer);
-
-            immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(sceneElement.Mesh.VertexBuffer, 24, 0));
-            immediateContext.InputAssembler.SetIndexBuffer(sceneElement.Mesh.IndexBuffer, Format.R16_UInt, 0);
-
-            immediateContext.PixelShader.SetShaderResource(0, textureCache.GetSRV(sceneElement.Mesh.TexturePath));
-
-            immediateContext.DrawIndexed(sceneElement.Mesh.IndexCount, 0, 0);
+         int wireIndex = 0;
+         var wireColorsByMesh = new Dictionary<SceneElement, Color>();
+         if (pickedMesh != null) {
+            foreach (var sceneElement in sceneElements.OrderByDescending(x => (x.Mesh.AABB.Maximum - x.Mesh.AABB.Minimum).LengthSquared())) {
+               if (pickedMesh.Mesh.TexturePath.Equals(sceneElement.Mesh.TexturePath, StringComparison.OrdinalIgnoreCase)) {
+                  wireColorsByMesh.Add(sceneElement, WireframeColors.GetColor(wireIndex, pickedMesh == sceneElement));
+                  wireIndex++;
+               }
+            }
          }
 
-         // Render the selected Mesh in wireframe overlay
-         if (pickedMesh != null) {
-            immediateContext.Rasterizer.State = wireframeOverlayRastState;
-            worldViewProj = pickedMesh.Transform * viewProj;
-            worldViewProj.Transpose();
-            immediateContext.UpdateSubresource(ref worldViewProj, vertexShaderPerFrameConstantBuffer);
+         foreach (var sceneElement in sceneElements) {
+            RenderMesh(sceneElement, viewProj);
 
-            immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(pickedMesh.Mesh.VertexBuffer, 24, 0));
-            immediateContext.InputAssembler.SetIndexBuffer(pickedMesh.Mesh.IndexBuffer, Format.R16_UInt, 0);
-
-            immediateContext.PixelShader.SetShaderResource(0, colorTextures.GetTextureViewOfColor(Color.White));
-
-            immediateContext.DrawIndexed(pickedMesh.Mesh.IndexCount, 0, 0);
+            if (pickedMesh != null && pickedMesh.Mesh.TexturePath.Equals(sceneElement.Mesh.TexturePath, StringComparison.OrdinalIgnoreCase)) {
+               var color = wireColorsByMesh[sceneElement];
+               RenderMesh(sceneElement, viewProj, color);
+               wireIndex++;
+            }
          }
 
          immediateContext.Flush();
          swapChain.Present(0, PresentFlags.None);
+      }
+
+      private void RenderMesh(SceneElement sceneElement, Matrix viewProj, Color? wireframeColor = null) {
+         var worldViewProj = sceneElement.Transform * viewProj;
+         worldViewProj.Transpose();
+
+         if (wireframeColor.HasValue) {
+            immediateContext.Rasterizer.State = wireframeOverlayRastState;
+            immediateContext.PixelShader.SetShaderResource(0, colorTextures.GetTextureViewOfColor(wireframeColor.Value));
+         } else {
+            immediateContext.Rasterizer.State = defaultRastState;
+            immediateContext.PixelShader.SetShaderResource(0, textureCache.GetSRV(sceneElement.Mesh.TexturePath));
+         }
+
+         immediateContext.UpdateSubresource(ref worldViewProj, vertexShaderPerFrameConstantBuffer);
+
+         immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(sceneElement.Mesh.VertexBuffer, 24, 0));
+         immediateContext.InputAssembler.SetIndexBuffer(sceneElement.Mesh.IndexBuffer, Format.R16_UInt, 0);
+
+         immediateContext.DrawIndexed(sceneElement.Mesh.IndexCount, 0, 0);
       }
 
       public void PickSceneAtScreenLocation(float screenLocationX, float screenLocationY, out string pickedTexture) {
