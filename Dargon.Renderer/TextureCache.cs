@@ -1,52 +1,58 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Runtime;
+using Dargon.Renderer.Properties;
 using SharpDX.Direct3D11;
 
 namespace Dargon.Renderer {
-   public class TextureCache {
-      public TextureCache() {
-         textures = new Dictionary<string, TextureAndSRV>();
+   public class TextureAndSRV {
+      public TextureAndSRV(Texture2D texture, ShaderResourceView srv) {
+         Texture = texture;
+         SRV = srv;
       }
+
+      public Texture2D Texture;
+      public ShaderResourceView SRV;
+   }
+
+   public class TextureCache {
+      public TextureCache(ColorTextures colorTextures) {
+         this.colorTextures = colorTextures;
+         textures = new ConcurrentDictionary<string, TextureAndSRV>();
+      }
+
 
       public string BasePath;
-      public Device device;
+      private Device device;
 
-      private class TextureAndSRV {
-         public TextureAndSRV(Texture2D texture, ShaderResourceView srv) {
-            Texture = texture;
-            SRV = srv;
-         }
+      private readonly ColorTextures colorTextures;
 
-         public Texture2D Texture;
-         public ShaderResourceView SRV;
+      private ConcurrentDictionary<string, TextureAndSRV> textures;
+
+
+      public void Initialize(Device device) {
+         this.device = device;
       }
-
-      private Dictionary<string, TextureAndSRV> textures;  
 
       public ShaderResourceView GetSRV(string textureName) {
-         if (textures.ContainsKey(textureName)) {
-            return textures[textureName].SRV;
-         }
-
-         // Create new texture and SRV
-         var texture = Resource.FromMemory<Texture2D>(device, File.ReadAllBytes(Path.Combine(BasePath, textureName)));
-         var srv = new ShaderResourceView(device, texture);
-
-         textures.Add(textureName, new TextureAndSRV(texture, srv));
-
-         return srv;
+         TextureAndSRV returnValue;
+         return textures.TryGetValue(textureName, out returnValue) ? returnValue.SRV : colorTextures.Red;
       }
 
-      public void SwapSRV(string textureName, string newTexturePath) {
-         var texAndSRV = textures[textureName];
-         texAndSRV.SRV.Dispose();
-         texAndSRV.Texture.Dispose();
-
-         // Create new texture and SRV
-         var texture = Resource.FromMemory<Texture2D>(device, File.ReadAllBytes(newTexturePath));
+      public void ReplaceTexture(string textureName, string newTexturePath) {
+         var texture = Resource.FromFile<Texture2D>(device, newTexturePath);
          var srv = new ShaderResourceView(device, texture);
+         var newValue = new TextureAndSRV(texture, srv);
 
-         textures[textureName] = new TextureAndSRV(texture, srv);
+         textures.AddOrUpdate(textureName, newValue,
+            (key, existingValue) => {
+               existingValue.Texture.Dispose();
+               existingValue.SRV.Dispose();
+
+               return newValue;
+            });
       }
    }
 }
