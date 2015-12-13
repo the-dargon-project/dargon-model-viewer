@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Dargon.Client.ViewModels.Helpers;
+using Dargon.League.WGEO;
+using Dargon.Renderer;
+using Dargon.Scene.Api.Util;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -7,10 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using Dargon.Client.ViewModels.Helpers;
-using Dargon.League.WGEO;
-using Dargon.Renderer;
-using Dargon.Scene.Api.Util;
 using SWF = System.Windows.Forms;
 
 namespace Dargon.ModelViewer.ViewModel {
@@ -114,8 +114,17 @@ namespace Dargon.ModelViewer.ViewModel {
                      renderer.AddMeshToScene(model, new Vector3());
                   }
 
-                  var thread = new Thread(LoadMeshTextures);
-                  thread.Start(new LoadMeshThreadArg(wgeoFile.models.SelectMany(model => new[] {model.TexturePath}).ToArray(), textureCache));
+                  Task.Factory.StartNew(
+                     () => {
+                        foreach (var textureName in wgeoFile.models.Select(m => m.TexturePath).Distinct()) {
+                           Task.Factory.StartNew(
+                              () => textureCache.ReplaceTextureAsync(textureName, Path.Combine(textureCache.BasePath, textureName)),
+                              TaskCreationOptions.LongRunning);
+                        }
+                     },
+                     CancellationToken.None,
+                     TaskCreationOptions.LongRunning,
+                     TaskScheduler.Default);
 
                   // Move the camera So it can see all the scene and lookAt is at the center of the scene
                   var sceneSize = renderer.GetSceneSize();
@@ -146,15 +155,6 @@ namespace Dargon.ModelViewer.ViewModel {
          public string[] TextureNames;
          public TextureCache TextureCache;
       }
-
-      public void LoadMeshTextures(object arg) {
-         var threadArgs = (LoadMeshThreadArg)arg;
-
-         Parallel.ForEach(threadArgs.TextureNames, textureName => { 
-            threadArgs.TextureCache.ReplaceTexture(textureName, Path.Combine(threadArgs.TextureCache.BasePath, textureName));
-         });
-      }
-
 
       public event PropertyChangedEventHandler PropertyChanged;
 
