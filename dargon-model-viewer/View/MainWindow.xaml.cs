@@ -20,9 +20,6 @@ namespace Dargon.ModelViewer.View {
          InitializeComponent();
          DataContext = viewModel = new ViewModelBase(hiddenForm);
 
-         cameraPanScale = 5.0f;
-         cameraScrollScale = 1.0f;
-
          lastRender = DateTime.Now.TimeOfDay;
          lastVisible = true;
 
@@ -36,9 +33,6 @@ namespace Dargon.ModelViewer.View {
       private bool lastVisible;
       private Point mouseLastLocation;
       private Point mouseDownLocation;
-
-      private float cameraPanScale;
-      private float cameraScrollScale;
 
       private void ImageHostGridLoaded(object sender, RoutedEventArgs e) {
          // Set up the interop image and start rendering
@@ -135,7 +129,7 @@ namespace Dargon.ModelViewer.View {
                var dx = ((float)(mouseLastLocation.X - location.X));
                var dy = ((float)(mouseLastLocation.Y - location.Y));
 
-               viewModel.CameraPan(-dx * cameraPanScale, dy * cameraPanScale);
+               viewModel.CameraPan(-dx, dy);
             }
          }
 
@@ -144,7 +138,7 @@ namespace Dargon.ModelViewer.View {
 
       private void OnMouseWheel(object sender, MouseWheelEventArgs e) {
          // Make each wheel dedent correspond to a size based on the scene
-         viewModel.CameraZoom(e.Delta * cameraScrollScale);
+         viewModel.CameraZoom(e.Delta);
       }
 
       #endregion // Mouse Events

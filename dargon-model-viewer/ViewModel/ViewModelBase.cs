@@ -20,12 +20,19 @@ namespace Dargon.ModelViewer.ViewModel {
          textureCache = new TextureCache(colorTextures);
          renderer = new Renderer.Renderer(hiddenForm, colorTextures, textureCache);
          mapLoaded = false;
+         cameraPanScale = 1.0f;
+         cameraScrollScale = 1.0f;
       }
 
 
       private Renderer.Renderer renderer;
       private ColorTextures colorTextures;
       private TextureCache textureCache;
+
+      private float cameraPanScale;
+      private float cameraScrollScale;
+      private const float kcameraPanScaleFactor = 400.0f;
+      private const float kcameraScrollScaleFactor = 1000.0f;
 
       private string clickedTexture = "foo";
       public string ClickedTexture { get { return clickedTexture; } set { clickedTexture = value; OnPropertyChanged(); } }
@@ -48,11 +55,11 @@ namespace Dargon.ModelViewer.ViewModel {
       }
 
       public void CameraPan(float dx, float dy) {
-         renderer.Camera.Pan(dx, dy);
+         renderer.Camera.Pan(dx * cameraPanScale, dy * cameraPanScale);
       }
 
       public void CameraZoom(float distance) {
-         renderer.Camera.Zoom(distance);
+         renderer.Camera.Zoom(distance * cameraScrollScale);
       }
 
 
