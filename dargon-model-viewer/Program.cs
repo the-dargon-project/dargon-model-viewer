@@ -1,7 +1,8 @@
-﻿using System;
-using System.Threading;
-using Dargon.ModelViewer.View;
+﻿using Dargon.ModelViewer.View;
 using Dargon.Renderer;
+using System;
+using System.Threading;
+using System.Windows;
 
 
 namespace Dargon.ModelViewer {
@@ -20,7 +21,8 @@ namespace Dargon.ModelViewer {
          window.Closed += OnClosed;
 
          // Run the form and an empty mainloop
-         hiddenForm.Run();
+         var application = Application.Current ?? new Application();
+         application.Run();
       }
 
       static void OnClosed(object sender, EventArgs e) {
