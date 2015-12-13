@@ -304,6 +304,31 @@ namespace Dargon.Renderer {
                }
             }
          }
+      public float DistanceFromViewToFirstSceneObject() {
+         var ray = Camera.GetViewRay();
+
+         var intersections = from sceneElement in sceneElements where sceneElement.Mesh.AABB.Intersects(ref ray) select sceneElement;
+
+         var closestIntersection = float.MaxValue;
+         foreach (var sceneElement in intersections) {
+            foreach (var triangle in sceneElement.Mesh.Triangles) {
+               float distance;
+               if (Collision.RayIntersectsTriangle(ref ray, ref triangle.V0, ref triangle.V1, ref triangle.V2, out distance)) {
+                  if (distance < closestIntersection) {
+                     closestIntersection = distance;
+                  }
+               }
+            }
+         }
+
+         return closestIntersection;
+      }
+
+      public AABB GetSceneSize() {
+         var boundingBox = sceneElements.Aggregate(new BoundingBox(), (current, sceneElement) => BoundingBox.Merge(current, sceneElement.Mesh.AABB));
+
+         return new AABB(boundingBox.Minimum.X, boundingBox.Minimum.Y, boundingBox.Minimum.Z, boundingBox.Maximum.X, boundingBox.Maximum.Y, boundingBox.Maximum.Z);
+      }
 
          return intersectedMeshTexture;
       }
