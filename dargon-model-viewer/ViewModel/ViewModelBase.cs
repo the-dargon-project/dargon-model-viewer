@@ -55,14 +55,32 @@ namespace Dargon.ModelViewer.ViewModel {
 
       public void CameraRotate(float dTheta, float dPhi) {
          renderer.Camera.Rotate(dTheta, dPhi);
+
+         var distanceToScene = renderer.DistanceFromViewToFirstSceneObject();
+         if (distanceToScene != float.MaxValue) {
+            cameraPanScale = distanceToScene / kcameraPanScaleFactor;
+            cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
+         }
       }
 
       public void CameraPan(float dx, float dy) {
          renderer.Camera.Pan(dx * cameraPanScale, dy * cameraPanScale);
+
+         var distanceToScene = renderer.DistanceFromViewToFirstSceneObject();
+         if (distanceToScene != float.MaxValue) {
+            cameraPanScale = distanceToScene / kcameraPanScaleFactor;
+            cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
+         }
       }
 
       public void CameraZoom(float distance) {
          renderer.Camera.Zoom(distance * cameraScrollScale);
+
+         var distanceToScene = renderer.DistanceFromViewToFirstSceneObject();
+         if (distanceToScene != float.MaxValue) {
+            cameraPanScale = distanceToScene / kcameraPanScaleFactor;
+            cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
+         }
       }
 
 
