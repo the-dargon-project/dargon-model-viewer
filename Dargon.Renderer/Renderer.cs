@@ -145,7 +145,7 @@ namespace Dargon.Renderer {
          wireframeOverlayRastState = new RasterizerState(device, new RasterizerStateDescription {
             IsAntialiasedLineEnabled = false,
             CullMode = CullMode.Back,
-            DepthBias = (int)(Math.Pow(2.0, 23.0) / 10000),
+            DepthBias = (int)(Math.Pow(2.0, 23.0) / 1000),
             DepthBiasClamp = 0.001f,
             IsDepthClipEnabled = true,
             FillMode = FillMode.Wireframe,
