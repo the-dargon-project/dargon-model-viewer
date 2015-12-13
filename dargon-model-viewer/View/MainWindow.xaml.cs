@@ -1,24 +1,22 @@
-﻿using System;
-using System.IO;
+﻿using Dargon.ModelViewer.ViewModel;
+using Dargon.Renderer;
+using System;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Input;
-using Dargon.League.WGEO;
-using Dargon.ModelViewer.ViewModel;
-using Dargon.Scene.Api.Util;
+using System.Windows.Threading;
 using IWin32Window = System.Windows.Forms.IWin32Window;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
-using SWF = System.Windows.Forms;
 
 namespace Dargon.ModelViewer.View {
    /// <summary>
    /// Interaction logic for MainWindow.xaml
    /// </summary>
-   public partial class MainWindow : Window {
+   public partial class MainWindow : Window, RenderHost {
       public MainWindow(IWin32Window hiddenForm) {
          InitializeComponent();
-         DataContext = viewModel = new ViewModelBase(hiddenForm);
+         DataContext = viewModel = new ViewModelBase(hiddenForm, this);
 
          lastRender = DateTime.Now.TimeOfDay;
          lastVisible = true;
@@ -33,6 +31,13 @@ namespace Dargon.ModelViewer.View {
       private bool lastVisible;
       private Point mouseLastLocation;
       private Point mouseDownLocation;
+
+      public void RequestRender() {
+         Application.Current.Dispatcher.BeginInvoke(
+            new Action(() => {
+               InteropImage.RequestRender();
+            }), DispatcherPriority.Render);
+      }
 
       private void ImageHostGridLoaded(object sender, RoutedEventArgs e) {
          // Set up the interop image and start rendering
@@ -90,7 +95,6 @@ namespace Dargon.ModelViewer.View {
             return;
          }
 
-         InteropImage.RequestRender();
          lastRender = args.RenderingTime;
       }
 
@@ -141,6 +145,5 @@ namespace Dargon.ModelViewer.View {
       }
 
       #endregion // Mouse Events
-
    }
 }

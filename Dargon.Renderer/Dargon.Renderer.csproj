@@ -99,6 +99,7 @@
     </Compile>
     <Compile Include="Renderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RenderHost.cs" />
     <Compile Include="RenderMesh.cs" />
     <Compile Include="TextureCache.cs" />
     <Compile Include="WireframeColors.cs" />

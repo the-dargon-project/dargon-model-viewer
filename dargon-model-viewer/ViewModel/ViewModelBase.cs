@@ -15,16 +15,17 @@ using SWF = System.Windows.Forms;
 
 namespace Dargon.ModelViewer.ViewModel {
    public class ViewModelBase : INotifyPropertyChanged {
-      public ViewModelBase(SWF.IWin32Window hiddenForm) {
+      public ViewModelBase(SWF.IWin32Window hiddenForm, RenderHost renderHost) {
+         this.renderHost = renderHost;
          colorTextures = new ColorTextures();
-         textureCache = new TextureCache(colorTextures);
-         renderer = new Renderer.Renderer(hiddenForm, colorTextures, textureCache);
+         textureCache = new TextureCache(colorTextures, renderHost);
+         renderer = new Renderer.Renderer(hiddenForm, renderHost, colorTextures, textureCache);
          mapLoaded = false;
          cameraPanScale = 1.0f;
          cameraScrollScale = 1.0f;
       }
 
-
+      private RenderHost renderHost;
       private Renderer.Renderer renderer;
       private ColorTextures colorTextures;
       private TextureCache textureCache;
@@ -54,6 +55,7 @@ namespace Dargon.ModelViewer.ViewModel {
          renderer.PickSceneAtScreenLocation((float)mouseLocation.X, (float)mouseLocation.Y, out pickedTexture);
 
          ClickedTexture = pickedTexture;
+         renderHost.RequestRender();
       }
 
 
@@ -65,6 +67,7 @@ namespace Dargon.ModelViewer.ViewModel {
             cameraPanScale = distanceToScene / kcameraPanScaleFactor;
             cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
          }
+         renderHost.RequestRender();
       }
 
       public void CameraPan(float dx, float dy) {
@@ -75,6 +78,7 @@ namespace Dargon.ModelViewer.ViewModel {
             cameraPanScale = distanceToScene / kcameraPanScaleFactor;
             cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
          }
+         renderHost.RequestRender();
       }
 
       public void CameraZoom(float distance) {
@@ -85,6 +89,7 @@ namespace Dargon.ModelViewer.ViewModel {
             cameraPanScale = distanceToScene / kcameraPanScaleFactor;
             cameraScrollScale = distanceToScene / kcameraScrollScaleFactor;
          }
+         renderHost.RequestRender();
       }
 
 
@@ -99,6 +104,7 @@ namespace Dargon.ModelViewer.ViewModel {
 
       private bool mapLoaded;
       private ICommand loadMapCommand;
+
       public ICommand LoadMapCommand {
          get {
             return loadMapCommand ?? (loadMapCommand = new ActionCommand(o => {

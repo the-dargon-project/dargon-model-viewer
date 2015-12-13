@@ -17,8 +17,9 @@ namespace Dargon.Renderer {
    }
 
    public class TextureCache {
-      public TextureCache(ColorTextures colorTextures) {
+      public TextureCache(ColorTextures colorTextures, RenderHost renderHost) {
          this.colorTextures = colorTextures;
+         this.renderHost = renderHost;
          textures = new ConcurrentDictionary<string, TextureAndSRV>();
       }
 
@@ -26,6 +27,7 @@ namespace Dargon.Renderer {
       private Device device;
 
       private readonly ColorTextures colorTextures;
+      private readonly RenderHost renderHost;
 
       private ConcurrentDictionary<string, TextureAndSRV> textures;
 
@@ -68,6 +70,7 @@ namespace Dargon.Renderer {
                   previousTextureAndSrv.SRV.Dispose();
                }
             }
+            renderHost.RequestRender();
          } catch (Exception e) {
             Console.Error.WriteLine(e);
          }

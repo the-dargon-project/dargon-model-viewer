@@ -19,7 +19,8 @@ namespace Dargon.Renderer {
    public class Renderer {
                   
 
-      public Renderer(IWin32Window form, ColorTextures colorTextures, TextureCache textureCache) {
+      public Renderer(IWin32Window form, RenderHost renderHost, ColorTextures colorTextures, TextureCache textureCache) {
+         this.renderHost = renderHost;
          this.textureCache = textureCache;
          this.colorTextures = colorTextures;
          sceneElements = new List<SceneElement>();
@@ -210,6 +211,7 @@ namespace Dargon.Renderer {
 
       public Camera Camera;
 
+      private readonly RenderHost renderHost;
       private TextureCache textureCache;
       private ColorTextures colorTextures;
 
