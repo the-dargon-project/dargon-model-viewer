@@ -115,7 +115,6 @@ namespace Dargon.ModelViewer.View {
 
       private void OnMouseMove(object sender, MouseEventArgs e) {
          var location = e.GetPosition(ImageHostGrid);
-
          if (ImageHostGrid.IsMouseCaptured && e.LeftButton == MouseButtonState.Pressed) {
             if ((Keyboard.Modifiers & ModifierKeys.Alt) > 0) {
                // Calculate the new phi and theta based on mouse position relative to where the user clicked
