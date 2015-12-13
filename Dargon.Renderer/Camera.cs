@@ -204,6 +204,13 @@ namespace Dargon.Renderer {
          return new Ray(GetCameraPosition(), direction);
       }
 
+      public Ray GetViewRay() {
+         var cameraPosition = GetCameraPosition();
+         var look = Vector3.Normalize(lookAt - cameraPosition);
+
+         return new Ray(cameraPosition, look);
+      }
+
 
       /**
 	    * Re-creates the view matrix. Don't call this directly. Lazy load
