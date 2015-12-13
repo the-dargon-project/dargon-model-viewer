@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
+using SharpDX;
 
 namespace Dargon.Renderer {
    public class TextureAndSRV {
@@ -35,7 +36,7 @@ namespace Dargon.Renderer {
 
       public ShaderResourceView GetSRV(string textureName) {
          TextureAndSRV returnValue;
-         return textures.TryGetValue(textureName, out returnValue) ? returnValue.SRV : colorTextures.Red;
+         return textures.TryGetValue(textureName, out returnValue) ? returnValue.SRV : colorTextures.GetTextureViewOfColor(Color.Red);
       }
 
       public void ReplaceTexture(string textureName, string newTexturePath) {

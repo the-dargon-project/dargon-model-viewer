@@ -1,33 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dargon.Renderer.Properties;
-using SharpDX.Direct3D11;
+﻿using SharpDX.Direct3D11;
+using System.Collections.Concurrent;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
+using Color = SharpDX.Color;
+using SDColor = System.Drawing.Color;
+using Device = SharpDX.Direct3D11.Device;
+using PixelFormat = System.Drawing.Imaging.PixelFormat;
+using Resource = SharpDX.Direct3D11.Resource;
 
 namespace Dargon.Renderer {
    public class ColorTextures {
-      
-      private Texture2D whiteTexture;
-      public ShaderResourceView White { get; private set; }
-
-      private Texture2D redTexture;
-      public ShaderResourceView Red { get; private set; }
-
-      private Texture2D yellowTexture;
-      public ShaderResourceView Yellow { get; private set; }
-
+      private readonly ConcurrentDictionary<Color, Texture2D> texturesByColor = new ConcurrentDictionary<Color, Texture2D>();
+      private readonly ConcurrentDictionary<Color, ShaderResourceView> texturesViewsByColor = new ConcurrentDictionary<Color, ShaderResourceView>();
+      private Device device;
 
       public void Initialize(Device device) {
-         whiteTexture = Resource.FromMemory<Texture2D>(device, Resources.white);
-         White = new ShaderResourceView(device, whiteTexture);
+         this.device = device;
+      }
 
-         redTexture = Resource.FromMemory<Texture2D>(device, Resources.red);
-         Red = new ShaderResourceView(device, redTexture);
+      public Texture2D GetTextureOfColor(Color color) {
+         return texturesByColor.GetOrAdd(
+            color,
+            add => CreateColoredTexture(color));
+      }
 
-         yellowTexture = Resource.FromMemory<Texture2D>(device, Resources.yellow);
-         Yellow = new ShaderResourceView(device, yellowTexture);
+      public ShaderResourceView GetTextureViewOfColor(Color color) {
+         return texturesViewsByColor.GetOrAdd(
+            color,
+            add => {
+               var texture = GetTextureOfColor(color);
+               return new ShaderResourceView(device, texture);
+            });
+      }
+
+      public Texture2D CreateColoredTexture(Color color) {
+         using (var bitmap = new Bitmap(1, 1, PixelFormat.Format32bppArgb)) {
+            using (var g = Graphics.FromImage(bitmap)) {
+               g.Clear(SDColor.FromArgb(color.A, color.R, color.G, color.B));
+            }
+            using (var ms = new MemoryStream()) {
+               bitmap.Save(ms, ImageFormat.Png);
+               ms.Position = 0;
+               return Resource.FromMemory<Texture2D>(device, ms.GetBuffer());
+            }
+         }
       }
    }
 }

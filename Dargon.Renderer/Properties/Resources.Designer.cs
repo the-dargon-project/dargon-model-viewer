@@ -73,39 +73,9 @@ namespace Dargon.Renderer.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static byte[] red {
-            get {
-                object obj = ResourceManager.GetObject("red", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
         internal static byte[] vs {
             get {
                 object obj = ResourceManager.GetObject("vs", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] white {
-            get {
-                object obj = ResourceManager.GetObject("white", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] yellow {
-            get {
-                object obj = ResourceManager.GetObject("yellow", resourceCulture);
                 return ((byte[])(obj));
             }
         }

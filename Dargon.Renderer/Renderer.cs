@@ -320,7 +320,7 @@ namespace Dargon.Renderer {
             immediateContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(pickedMesh.Mesh.VertexBuffer, 24, 0));
             immediateContext.InputAssembler.SetIndexBuffer(pickedMesh.Mesh.IndexBuffer, Format.R16_UInt, 0);
 
-            immediateContext.PixelShader.SetShaderResource(0, colorTextures.White);
+            immediateContext.PixelShader.SetShaderResource(0, colorTextures.GetTextureViewOfColor(Color.White));
 
             immediateContext.DrawIndexed(pickedMesh.Mesh.IndexCount, 0, 0);
          }
