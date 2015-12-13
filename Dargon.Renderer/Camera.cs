@@ -161,7 +161,7 @@ namespace Dargon.Renderer {
        *
        * @return    The view matrix
        */
-      public Matrix GetView() {
+      public Matrix GetViewMatrix() {
          if (!viewNeedsUpdate)
             return view;
 
@@ -176,7 +176,7 @@ namespace Dargon.Renderer {
        *
        * @return    The projection matrix
        */
-      public Matrix GetProj() { return proj; }
+      public Matrix GetProjMatrix() { return proj; }
 
       public Ray GetRayFromScreenPoint(float screenPointX, float screenPointY) {
          // Calculate normalized device coords
@@ -187,9 +187,9 @@ namespace Dargon.Renderer {
          
          var ndc = new Vector4(x, y, z, w);
 
-         var invView = GetView();
+         var invView = GetViewMatrix();
          invView.Invert();
-         var invProj = GetProj();
+         var invProj = GetProjMatrix();
          invProj.Invert();
 
          var rayViewSpace = Vector4.Transform(ndc, invProj);

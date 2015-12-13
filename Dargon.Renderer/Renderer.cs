@@ -264,8 +264,8 @@ namespace Dargon.Renderer {
          immediateContext.OutputMerger.SetRenderTargets(depthStencilView, backbufferRTV);
 
          // Update WorldViewProj Matrix
-         var view = Camera.GetView();
-         var proj = Camera.GetProj();
+         var view = Camera.GetViewMatrix();
+         var proj = Camera.GetProjMatrix();
          var viewProj = Matrix.Multiply(view, proj);
 
          foreach (var sceneElement in sceneElements) {
