@@ -5,8 +5,8 @@ namespace Dargon.Renderer {
    public class Camera {
       public Camera() {
          theta = 0.0f;
-         phi = (float)Math.PI / 2.0f;
-         radius = 5.0f;
+         phi = 0.0f;
+         radius = 10.0f;
          up = 1.0f;
          pivotDistance = 100.0f;
          lookAt = new Vector3(0.0f, 0.0f, 0.0f);
@@ -44,7 +44,7 @@ namespace Dargon.Renderer {
       private float radius;
       private float up;
 
-      private readonly float pivotDistance;
+      private float pivotDistance;
       private Vector3 lookAt;
 
       private float clientWidth;
@@ -209,6 +209,15 @@ namespace Dargon.Renderer {
          var look = Vector3.Normalize(lookAt - cameraPosition);
 
          return new Ray(cameraPosition, look);
+      }
+
+      public void Reset(float theta, float phi, float radius, Vector3 lookAt) {
+         viewNeedsUpdate = true;
+
+         this.theta = theta;
+         this.phi = phi;
+         this.radius = pivotDistance = radius;
+         this.lookAt = lookAt;
       }
 
 
